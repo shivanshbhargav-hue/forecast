@@ -1,14 +1,16 @@
-name: Daily Inventory Forecast
+name: Daily Warehouse Forecast
 
 on:
   push:
     paths:
-      - 'raw.csv'  # <--- Workflow runs ONLY when this file is updated
-  workflow_dispatch:
+      - 'raw.csv'        # Run when raw.csv is uploaded
+  workflow_dispatch:     # Run manually via button
 
 jobs:
   run-pipeline:
     runs-on: ubuntu-latest
+    permissions:         # Grant write permission to save results
+      contents: write
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -19,7 +21,7 @@ jobs:
           python-version: '3.9'
 
       - name: Install Libraries
-        run: pip install -r requirements.txt
+        run: pip install pandas numpy openpyxl
 
       - name: Run Forecast Script
         run: python pipeline.py
@@ -29,6 +31,6 @@ jobs:
           git config --global user.name 'GitHub Action'
           git config --global user.email 'action@github.com'
           git add Live_Inventory.csv Final_Dispatch_List.csv festival_forecast_inventory_optimized.csv
-          git commit -m "Auto-update: Daily Forecast & Inventory"
-
+          # The logic below prevents failure if there are no changes to commit
+          git diff-index --quiet HEAD || git commit -m "Auto-update: Forecast & Inventory"
           git push
