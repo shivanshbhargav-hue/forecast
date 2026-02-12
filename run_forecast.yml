@@ -1,0 +1,33 @@
+name: Daily Inventory Forecast
+
+on:
+  push:
+    paths:
+      - 'raw.csv'  # <--- Workflow runs ONLY when this file is updated
+  workflow_dispatch:
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install Libraries
+        run: pip install -r requirements.txt
+
+      - name: Run Forecast Script
+        run: python pipeline.py
+
+      - name: Commit & Push Results
+        run: |
+          git config --global user.name 'GitHub Action'
+          git config --global user.email 'action@github.com'
+          git add Live_Inventory.csv Final_Dispatch_List.csv festival_forecast_inventory_optimized.csv
+          git commit -m "Auto-update: Daily Forecast & Inventory"
+          git push
